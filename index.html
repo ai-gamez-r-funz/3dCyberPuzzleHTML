@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Junette 4.6692 - Modular Prototype</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0e27;
+            color: #00ff88;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #ui-container {
+            padding: 15px;
+            background: rgba(10, 14, 39, 0.95);
+            border-bottom: 2px solid #00ff88;
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .ui-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+
+        .ui-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .ui-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            text-shadow: 0 0 10px #00ff88;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: #00aa66;
+            opacity: 0.8;
+        }
+
+        button {
+            background: linear-gradient(135deg, #00ff88 0%, #00aa66 100%);
+            border: none;
+            padding: 10px 20px;
+            color: #0a0e27;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 255, 136, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .info-panel {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 8px 15px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .info-label {
+            font-size: 10px;
+            color: #00aa66;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        .branch-indicator {
+            background: rgba(255, 107, 53, 0.2);
+            border: 2px solid #ff6b35;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: none; /* Hidden for Layer 1 */
+        }
+
+        .branch-indicator.visible {
+            display: block;
+        }
+
+        .branch-indicator.active {
+            background: rgba(0, 255, 136, 0.3);
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+        }
+
+        #game-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #message-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 255, 136, 0.95);
+            color: #0a0e27;
+            padding: 30px 50px;
+            border-radius: 8px;
+            font-size: 32px;
+            font-weight: bold;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.6);
+            z-index: 1000;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        #message-overlay.show {
+            opacity: 1;
+        }
+
+        .controls-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 255, 136, 0.1);
+            padding: 10px 20px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .key {
+            display: inline-block;
+            background: rgba(0, 255, 136, 0.2);
+            padding: 2px 8px;
+            border-radius: 3px;
+            margin: 0 3px;
+            border: 1px solid rgba(0, 255, 136, 0.4);
+        }
+
+        select {
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            min-width: 250px;
+        }
+
+        select option {
+            background: #0a0e27;
+            color: #00ff88;
+        }
+
+        .layer-label {
+            font-size: 14px;
+            color: #ff6b35;
+            text-shadow: 0 0 10px #ff6b35;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        .layer-1 { color: #00ff88; text-shadow: 0 0 10px #00ff88; }
+        .layer-2 { color: #ff6b35; text-shadow: 0 0 10px #ff6b35; }
+        .layer-3 { color: #ff3366; text-shadow: 0 0 10px #ff3366; }
+    </style>
+</head>
+<body>
+    <div id="ui-container">
+        <div class="ui-row">
+            <div>
+                <h1>JUNETTE 4.6692</h1>
+                <div class="subtitle">RECURSION PROTOCOL // MODULAR PROTOTYPE</div>
+                <div class="layer-label" id="layer-label">â—ˆ LAYER 1: FOUNDATION â—ˆ</div>
+            </div>
+            <div class="ui-section" id="branch-indicators">
+                <div class="branch-indicator" id="branch-a-indicator">BRANCH A</div>
+                <div class="branch-indicator" id="branch-b-indicator">BRANCH B</div>
+            </div>
+            <div class="ui-section">
+                <div class="info-panel">
+                    <div class="info-label">Moves</div>
+                    <div class="info-value" id="move-counter">0</div>
+                </div>
+                <div class="info-panel">
+                    <div class="info-label">Pushes</div>
+                    <div class="info-value" id="push-counter">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="ui-row">
+            <div class="ui-section">
+                <select id="layer-select">
+                    <option value="1">Layer 1: Foundation (No Bifurcation)</option>
+                    <option value="2">Layer 2: Bifurcation (2-Way)</option>
+                </select>
+                <select id="puzzle-select">
+                    <!-- Populated dynamically -->
+                </select>
+                <button id="load-puzzle-btn">Load Puzzle</button>
+            </div>
+            <div class="ui-section">
+                <button id="undo-btn">Undo (Z)</button>
+                <button id="reset-btn">Reset (R)</button>
+                <button id="help-btn">Help (?)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-container"></div>
+    
+    <div id="message-overlay"></div>
+
+    <div class="controls-hint" id="controls-hint">
+        <span class="key">WASD</span> / <span class="key">Arrows</span> to move • 
+        <span class="key">Z</span> undo • 
+        <span class="key">R</span> reset •
+        <span class="key">?</span> help
+        <span id="branch-hint" style="display: none;">
+            • <span class="key">1</span> <span class="key">2</span> or <span class="key">Tab</span> to switch branches
+        </span>
+    </div>
+
+    <script type="module">
+        // This will be the main game controller
+        // For now, showing structure - you'll implement the full version
+        
+        import { CONFIG, BIFURCATION_LAYERS } from './core/config.js';
+        import { LAYER_1_PUZZLES } from './puzzles/layer1-puzzles.js';
+        import { LAYER_2_PUZZLES } from './puzzles/layer2-puzzles.js';
+        
+        console.log('Junette 4.6692 - Modular Prototype');
+        console.log('Config loaded:', CONFIG);
+        console.log('Layer 1 puzzles:', LAYER_1_PUZZLES.length);
+        console.log('Layer 2 puzzles:', LAYER_2_PUZZLES.length);
+        
+        // Layer selection
+        const layerSelect = document.getElementById('layer-select');
+        const puzzleSelect = document.getElementById('puzzle-select');
+        const layerLabel = document.getElementById('layer-label');
+        const branchIndicators = document.getElementById('branch-indicators');
+        const branchHint = document.getElementById('branch-hint');
+        
+        let currentLayer = 1;
+        let currentPuzzles = LAYER_1_PUZZLES;
+        
+        function updatePuzzleList() {
+            currentLayer = parseInt(layerSelect.value);
+            currentPuzzles = currentLayer === 1 ? LAYER_1_PUZZLES : LAYER_2_PUZZLES;
+            
+            // Update UI
+            const layerInfo = BIFURCATION_LAYERS[currentLayer];
+            layerLabel.textContent = `â—ˆ ${layerInfo.name.toUpperCase()} â—ˆ`;
+            layerLabel.className = `layer-label layer-${currentLayer}`;
+            
+            // Show/hide branch indicators
+            const indicators = branchIndicators.querySelectorAll('.branch-indicator');
+            indicators.forEach(ind => {
+                if (currentLayer > 1) {
+                    ind.classList.add('visible');
+                } else {
+                    ind.classList.remove('visible');
+                }
+            });
+            
+            // Show/hide branch switching hint
+            branchHint.style.display = currentLayer > 1 ? 'inline' : 'none';
+            
+            // Populate puzzle dropdown
+            puzzleSelect.innerHTML = '';
+            currentPuzzles.forEach((puzzle, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `[${puzzle.category.toUpperCase()}] ${puzzle.name}`;
+                puzzleSelect.appendChild(option);
+            });
+        }
+        
+        layerSelect.addEventListener('change', updatePuzzleList);
+        
+        // Initialize
+        updatePuzzleList();
+        
+        // Placeholder message
+        document.getElementById('message-overlay').textContent = 'Modular System Loaded!\n\nFull game implementation coming next...';
+        document.getElementById('message-overlay').classList.add('show');
+        
+        setTimeout(() => {
+            document.getElementById('message-overlay').classList.remove('show');
+        }, 3000);
+    </script>
+</body>
+</html>
