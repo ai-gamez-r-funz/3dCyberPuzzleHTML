@@ -114,7 +114,7 @@
             border-radius: 4px;
             font-weight: bold;
             transition: all 0.3s ease;
-            display: none; /* Hidden for Layer 1 */
+            display: none;
         }
 
         .branch-indicator.visible {
@@ -216,7 +216,7 @@
             <div>
                 <h1>JUNETTE 4.6692</h1>
                 <div class="subtitle">RECURSION PROTOCOL // MODULAR PROTOTYPE</div>
-                <div class="layer-label" id="layer-label">â—ˆ LAYER 1: FOUNDATION â—ˆ</div>
+                <div class="layer-label" id="layer-label">◈ LAYER 1: FOUNDATION ◈</div>
             </div>
             <div class="ui-section" id="branch-indicators">
                 <div class="branch-indicator" id="branch-a-indicator">BRANCH A</div>
@@ -267,10 +267,12 @@
     </div>
 
     <script type="module">
-        // This will be the main game controller
-        // For now, showing structure - you'll implement the full version
+        // ============================================
+        // MAIN GAME INITIALIZATION
+        // ============================================
         
         import { CONFIG, BIFURCATION_LAYERS } from './core/config.js';
+        import { Game } from './core/game.js';
         import { LAYER_1_PUZZLES } from './puzzles/layer1-puzzles.js';
         import { LAYER_2_PUZZLES } from './puzzles/layer2-puzzles.js';
         
@@ -279,12 +281,17 @@
         console.log('Layer 1 puzzles:', LAYER_1_PUZZLES.length);
         console.log('Layer 2 puzzles:', LAYER_2_PUZZLES.length);
         
+        // Initialize game
+        const gameContainer = document.getElementById('game-container');
+        const game = new Game(gameContainer);
+        
         // Layer selection
         const layerSelect = document.getElementById('layer-select');
         const puzzleSelect = document.getElementById('puzzle-select');
         const layerLabel = document.getElementById('layer-label');
         const branchIndicators = document.getElementById('branch-indicators');
         const branchHint = document.getElementById('branch-hint');
+        const loadPuzzleBtn = document.getElementById('load-puzzle-btn');
         
         let currentLayer = 1;
         let currentPuzzles = LAYER_1_PUZZLES;
@@ -293,9 +300,12 @@
             currentLayer = parseInt(layerSelect.value);
             currentPuzzles = currentLayer === 1 ? LAYER_1_PUZZLES : LAYER_2_PUZZLES;
             
+            // Update game's puzzle list
+            game.setPuzzleList(currentPuzzles);
+            
             // Update UI
             const layerInfo = BIFURCATION_LAYERS[currentLayer];
-            layerLabel.textContent = `â—ˆ ${layerInfo.name.toUpperCase()} â—ˆ`;
+            layerLabel.textContent = `◈ ${layerInfo.name.toUpperCase()} ◈`;
             layerLabel.className = `layer-label layer-${currentLayer}`;
             
             // Show/hide branch indicators
@@ -323,16 +333,19 @@
         
         layerSelect.addEventListener('change', updatePuzzleList);
         
+        loadPuzzleBtn.addEventListener('click', () => {
+            const index = parseInt(puzzleSelect.value);
+            game.loadPuzzle(index);
+        });
+        
         // Initialize
         updatePuzzleList();
         
-        // Placeholder message
-        document.getElementById('message-overlay').textContent = 'Modular System Loaded!\n\nFull game implementation coming next...';
-        document.getElementById('message-overlay').classList.add('show');
+        // Load first puzzle automatically
+        game.loadPuzzle(0);
         
-        setTimeout(() => {
-            document.getElementById('message-overlay').classList.remove('show');
-        }, 3000);
+        // Welcome message
+        game.showMessage('Welcome to Junette 4.6692!\\n\\nPress WASD to move', 3000);
     </script>
 </body>
 </html>
