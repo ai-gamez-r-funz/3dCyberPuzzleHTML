@@ -10,18 +10,29 @@ import { PressurePlateManager } from '../mechanics/pressure-plates.js';
 
 export class Game {
     constructor(containerElement) {
+        console.log('[Game] Constructor called with container:', containerElement);
+        
+        console.log('[Game] Creating GameState...');
         this.state = new GameState();
+        console.log('[Game] GameState created:', this.state);
+        
         this.currentPuzzleIndex = 0;
         this.currentLayer = 1;
         
         // Initialize renderer
+        console.log('[Game] Creating Renderer...');
         this.renderer = new Renderer(containerElement, this.state);
+        console.log('[Game] Renderer created:', this.renderer);
         
         // Setup UI references
+        console.log('[Game] Setting up UI references...');
         this.setupUIReferences();
         
         // Setup controls
+        console.log('[Game] Setting up controls...');
         this.setupControls();
+        
+        console.log('[Game] Constructor complete!');
     }
     
     setupUIReferences() {
@@ -274,8 +285,14 @@ export class Game {
     }
     
     loadPuzzle(index, puzzleData = null) {
+        console.log('[Game] loadPuzzle called with index:', index);
         this.currentPuzzleIndex = index;
-        const puzzle = puzzleData || this.getCurrentPuzzleList()[index];
+        
+        const puzzleList = this.getCurrentPuzzleList();
+        console.log('[Game] Current puzzle list length:', puzzleList.length);
+        
+        const puzzle = puzzleData || puzzleList[index];
+        console.log('[Game] Puzzle to load:', puzzle);
         
         if (!puzzle) {
             console.error('Puzzle not found:', index);
@@ -283,13 +300,17 @@ export class Game {
         }
         
         this.currentLayer = puzzle.bifurcationLayer || 1;
+        console.log('[Game] Loading puzzle into state...');
         this.state.loadPuzzle(puzzle);
+        console.log('[Game] Puzzle loaded into state, rendering...');
         this.renderer.renderScene();
+        console.log('[Game] Scene rendered!');
         this.renderer.updateBranchIndicators(this.state.activeBranch);
         this.updateUI();
         
         this.ui.puzzleSelect.value = index;
         this.showMessage(puzzle.name, 2000);
+        console.log('[Game] loadPuzzle complete!');
     }
     
     getCurrentPuzzleList() {
