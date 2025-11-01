@@ -263,12 +263,31 @@ export class GameState {
     }
     
     isSolved() {
-        // All boxes in all branches must be on correct targets
+        // All targets in all branches must have a correctly colored box on them
+        // (Extra boxes beyond targets are allowed - they can be used for plates, etc.)
         for (let branchIndex = 0; branchIndex < this.branches.length; branchIndex++) {
             const branch = this.branches[branchIndex];
-            for (let box of branch.boxes) {
-                if (!this.isBoxOnCorrectTarget(branchIndex, box)) {
-                    return false;
+            
+            // Check each target
+            for (let target of this.targets) {
+                const targetColor = this.targetColorsPerBranch[branchIndex]?.[target.id] || 'neutral';
+                
+                // Skip inactive targets
+                if (targetColor === 'inactive') continue;
+                
+                // Find if there's a box on this target
+                const boxOnTarget = branch.boxes.find(b => b.x === target.x && b.y === target.y);
+                
+                if (!boxOnTarget) {
+                    return false; // Target has no box
+                }
+                
+                // Check if box color matches target color
+                const boxColor = this.boxColors[boxOnTarget.id] || 'neutral';
+                
+                // Neutral boxes/targets match anything
+                if (boxColor !== 'neutral' && targetColor !== 'neutral' && boxColor !== targetColor) {
+                    return false; // Wrong color box on target
                 }
             }
         }
